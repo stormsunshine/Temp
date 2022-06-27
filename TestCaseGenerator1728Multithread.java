@@ -2,172 +2,172 @@ import java.io.*;
 import java.util.*;
 
 public class TestCaseGenerator1728Multithread {
-	public static void main(String[] args) throws Exception {
-		int length = 15;// 线程数的指数
-		long total = 1L << length;// 线程数
-		for (long i = 0; i < total; i++) {
-			char[] first = generate(length, i);
-			Runnable generator = new GeneratorMultithread(first);
-			Thread thread = new Thread(generator);
-			thread.start();
-		}
-	}
+    public static void main(String[] args) throws Exception {
+        int length = 15;// 线程数的指数
+        long total = 1L << length;// 线程数
+        for (long i = 0; i < total; i++) {
+            char[] first = generate(length, i);
+            Runnable generator = new GeneratorMultithread(first);
+            Thread thread = new Thread(generator);
+            thread.start();
+        }
+    }
 
-	private static char[] generate(int length, long index) {
-		char[] first = new char[length];
-		Arrays.fill(first, '.');
-		for (int i = 0; i < length && index > 0; i++) {
-			long remainder = index % 2;
-			if (remainder == 1) {
-				first[i] = '#';
-			}
-			index /= 2;
-		}
-		return first;
-	}
+    private static char[] generate(int length, long index) {
+        char[] first = new char[length];
+        Arrays.fill(first, '.');
+        for (int i = 0; i < length && index > 0; i++) {
+            long remainder = index % 2;
+            if (remainder == 1) {
+                first[i] = '#';
+            }
+            index /= 2;
+        }
+        return first;
+    }
 }
 
 class GeneratorMultithread implements Runnable {
-	static final int SIDE = 8;
-	static int total = SIDE * SIDE;
-	static int remain = total - 3;
-	static Solution1728 sol = new Solution1728();
-	static int maxSteps = 0;
-	static int threadId = 0;
-	char[] floorWall;
-	int startPos;
+    static final int SIDE = 8;
+    static int total = SIDE * SIDE;
+    static int remain = total - 3;
+    static Solution1728 sol = new Solution1728();
+    static int maxSteps = 0;
+    static int threadId = 0;
+    char[] floorWall;
+    int startPos;
 
-	public GeneratorMultithread(char[] first) {
-		floorWall = new char[remain];
-		Arrays.fill(floorWall, '.');
-		startPos = first.length;
-		System.arraycopy(first, 0, floorWall, 0, startPos);
-	}
+    public GeneratorMultithread(char[] first) {
+        floorWall = new char[remain];
+        Arrays.fill(floorWall, '.');
+        startPos = first.length;
+        System.arraycopy(first, 0, floorWall, 0, startPos);
+    }
 
-	@Override
-	public void run() {
-		long start = System.currentTimeMillis();
-		List<String[]> grids = new ArrayList<String[]>();
-		List<int[]> jumps = new ArrayList<int[]>();
-		generate(grids, jumps, floorWall, startPos);
-		String path = "1728 output " + SIDE + " " + threadId + ".txt";
-		threadId++;
-		if (grids.isEmpty()) {
-			return;
-		}
-		try {
-			BufferedWriter bw = new BufferedWriter(new FileWriter(path));
-			int size = grids.size();
-			for (int i = 0; i < size; i++) {
-				String[] grid = grids.get(i);
-				int[] jump = jumps.get(i);
-				int catJump = jump[0], mouseJump = jump[1];
-				String str = Arrays.toString(grid).replaceAll(" ", "");
-				bw.write(str + "\r\n" + catJump + "\r\n" + mouseJump + "\r\n");
-			}
-			System.out.println(size);
-			bw.write(size + "\r\n");
-			long end = System.currentTimeMillis();
-			System.out.println("Max possible steps with side " + SIDE + ": " + maxSteps);
-			System.out.println("Time used: " + (end - start) / 1000 + " seconds");
-			bw.write("Max possible steps with side " + SIDE + ": " + maxSteps + "\r\n");
-			bw.write("Time used: " + (end - start) / 1000 + " seconds");
-			bw.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+    @Override
+    public void run() {
+        long start = System.currentTimeMillis();
+        List<String[]> grids = new ArrayList<String[]>();
+        List<int[]> jumps = new ArrayList<int[]>();
+        generate(grids, jumps, floorWall, startPos);
+        String path = "1728 output " + SIDE + " " + threadId + ".txt";
+        threadId++;
+        if (grids.isEmpty()) {
+            return;
+        }
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter(path));
+            int size = grids.size();
+            for (int i = 0; i < size; i++) {
+                String[] grid = grids.get(i);
+                int[] jump = jumps.get(i);
+                int catJump = jump[0], mouseJump = jump[1];
+                String str = Arrays.toString(grid).replaceAll(" ", "");
+                bw.write(str + "\r\n" + catJump + "\r\n" + mouseJump + "\r\n");
+            }
+            System.out.println(size);
+            bw.write(size + "\r\n");
+            long end = System.currentTimeMillis();
+            System.out.println("Max possible steps with side " + SIDE + ": " + maxSteps);
+            System.out.println("Time used: " + (end - start) / 1000 + " seconds");
+            bw.write("Max possible steps with side " + SIDE + ": " + maxSteps + "\r\n");
+            bw.write("Time used: " + (end - start) / 1000 + " seconds");
+            bw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-	private static void generate(List<String[]> grids, List<int[]> jumps, char[] floorWall, int start) {
-		backtrack(grids, jumps, floorWall, start);
-	}
+    private static void generate(List<String[]> grids, List<int[]> jumps, char[] floorWall, int start) {
+        backtrack(grids, jumps, floorWall, start);
+    }
 
-	private static void backtrack(List<String[]> grids, List<int[]> jumps, char[] floorWall, int index) {
-		if (index == remain) {
-			for (int foodRow = 0; foodRow < (SIDE + 1) / 2; foodRow++) {
-				for (int foodColumn = foodRow; foodColumn < (SIDE + 1) / 2; foodColumn++) {
-					for (int cat = 0; cat < total; cat++) {
-						int catRow = cat / SIDE, catColumn = cat % SIDE;
-						if (catRow == foodRow && catColumn == foodColumn) {
-							continue;
-						}
-						for (int mouse = 0; mouse < total; mouse++) {
-							int mouseRow = mouse / SIDE, mouseColumn = mouse % SIDE;
-							if (mouseRow == foodRow && mouseColumn == foodColumn || mouseRow == catRow && mouseColumn == catColumn) {
-								continue;
-							}
-							char[][] matrix = new char[SIDE][SIDE];
-							matrix[foodRow][foodColumn] = 'F';
-							matrix[catRow][catColumn] = 'C';
-							matrix[mouseRow][mouseColumn] = 'M';
-							for (int i = 0, j = 0; i < total; i++) {
-								int row = i / SIDE, column = i % SIDE;
-								if (matrix[row][column] == 'F' || matrix[row][column] == 'C' || matrix[row][column] == 'M') {
-									continue;
-								}
-								matrix[row][column] = floorWall[j++];
-							}
-							String[] grid = matrix2Grid(matrix);
-							test(grids, jumps, grid);
-						}
-					}
-				}
-			}
-		} else {
-			floorWall[index] = '#';
-			backtrack(grids, jumps, floorWall, index + 1);
-			floorWall[index] = '.';
-			backtrack(grids, jumps, floorWall, index + 1);
-		}
-	}
+    private static void backtrack(List<String[]> grids, List<int[]> jumps, char[] floorWall, int index) {
+        if (index == remain) {
+            for (int foodRow = 0; foodRow < (SIDE + 1) / 2; foodRow++) {
+                for (int foodColumn = foodRow; foodColumn < (SIDE + 1) / 2; foodColumn++) {
+                    for (int cat = 0; cat < total; cat++) {
+                        int catRow = cat / SIDE, catColumn = cat % SIDE;
+                        if (catRow == foodRow && catColumn == foodColumn) {
+                            continue;
+                        }
+                        for (int mouse = 0; mouse < total; mouse++) {
+                            int mouseRow = mouse / SIDE, mouseColumn = mouse % SIDE;
+                            if (mouseRow == foodRow && mouseColumn == foodColumn || mouseRow == catRow && mouseColumn == catColumn) {
+                                continue;
+                            }
+                            char[][] matrix = new char[SIDE][SIDE];
+                            matrix[foodRow][foodColumn] = 'F';
+                            matrix[catRow][catColumn] = 'C';
+                            matrix[mouseRow][mouseColumn] = 'M';
+                            for (int i = 0, j = 0; i < total; i++) {
+                                int row = i / SIDE, column = i % SIDE;
+                                if (matrix[row][column] == 'F' || matrix[row][column] == 'C' || matrix[row][column] == 'M') {
+                                    continue;
+                                }
+                                matrix[row][column] = floorWall[j++];
+                            }
+                            String[] grid = matrix2Grid(matrix);
+                            test(grids, jumps, grid);
+                        }
+                    }
+                }
+            }
+        } else {
+            floorWall[index] = '#';
+            backtrack(grids, jumps, floorWall, index + 1);
+            floorWall[index] = '.';
+            backtrack(grids, jumps, floorWall, index + 1);
+        }
+    }
 
-	private static String[] matrix2Grid(char[][] matrix) {
-		String[] grid = new String[SIDE];
-		for (int i = 0; i < SIDE; i++) {
-			StringBuffer sb = new StringBuffer();
-			sb.append(new String(matrix[i]));
-			grid[i] = sb.toString();
-		}
-		return grid;
-	}
+    private static String[] matrix2Grid(char[][] matrix) {
+        String[] grid = new String[SIDE];
+        for (int i = 0; i < SIDE; i++) {
+            StringBuffer sb = new StringBuffer();
+            sb.append(new String(matrix[i]));
+            grid[i] = sb.toString();
+        }
+        return grid;
+    }
 
-	private static void test(List<String[]> grids, List<int[]> jumps, String[] grid) {
-		for (int catJump = 1; catJump < SIDE; catJump++) {
-			for (int mouseJump = 1; mouseJump < SIDE; mouseJump++) {
-				int[] ans = sol.canMouseWin(grid, catJump, mouseJump);
-				int steps = ans[1];
-				if (steps > maxSteps) {
-					maxSteps = steps;
-				}
-				if (steps > Solution1728.MAX_MOVES) {
-					System.out.println(Arrays.toString(ans));
-					System.out.println(grid2Str(grid));
-					System.out.println(catJump);
-					System.out.println(mouseJump);
-					grids.add(grid);
-					jumps.add(new int[]{catJump, mouseJump});
-				}
-			}
-		}
-	}
+    private static void test(List<String[]> grids, List<int[]> jumps, String[] grid) {
+        for (int catJump = 1; catJump < SIDE; catJump++) {
+            for (int mouseJump = 1; mouseJump < SIDE; mouseJump++) {
+                int[] ans = sol.canMouseWin(grid, catJump, mouseJump);
+                int steps = ans[1];
+                if (steps > maxSteps) {
+                    maxSteps = steps;
+                }
+                if (steps > Solution1728.MAX_MOVES) {
+                    System.out.println(Arrays.toString(ans));
+                    System.out.println(grid2Str(grid));
+                    System.out.println(catJump);
+                    System.out.println(mouseJump);
+                    grids.add(grid);
+                    jumps.add(new int[]{catJump, mouseJump});
+                }
+            }
+        }
+    }
 
-	private static String grid2Str(String[] grid) {
-		StringBuffer sb = new StringBuffer();
-		sb.append('[');
-		int rows = grid.length;
-		for (int i = 0; i < rows; i++) {
-			if (i > 0) {
-				sb.append(',');
-			}
-			StringBuffer line = new StringBuffer();
-			line.append('"');
-			line.append(grid[i]);
-			line.append('"');
-			sb.append(line);
-		}
-		sb.append(']');
-		return sb.toString();
-	}
+    private static String grid2Str(String[] grid) {
+        StringBuffer sb = new StringBuffer();
+        sb.append('[');
+        int rows = grid.length;
+        for (int i = 0; i < rows; i++) {
+            if (i > 0) {
+                sb.append(',');
+            }
+            StringBuffer line = new StringBuffer();
+            line.append('"');
+            line.append(grid[i]);
+            line.append('"');
+            sb.append(line);
+        }
+        sb.append(']');
+        return sb.toString();
+    }
 }
 
 class Solution1728 {
